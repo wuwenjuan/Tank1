@@ -13,6 +13,7 @@
 #include "TankHero.h"
 #include "GameDefine.h"
 #include "EnemyTank.h"
+#include "Barrier.h"
 
 Scene* GameScene::createScene()
 {
@@ -277,31 +278,48 @@ void GameScene::removeEnemyTank(Node* etank)
 
 void GameScene::addEnemyTankGroup1()
 {
-    addEnemyTank1(Vec2(winsize.width/8,winsize.height/2));
-    addEnemyTank1(Vec2(winsize.width/8,winsize.height/2));
+    addEnemyTank1(Vec2(winsize.width/8,winsize.height));
+    addEnemyTank1(Vec2(winsize.width/8,winsize.height));
 }
 
 void GameScene::addEnemyTankGroup2()
 {
-    addEnemyTank2(Vec2(winsize.width/8,winsize.height/2));
-    addEnemyTank2(Vec2(winsize.width/8*2,winsize.height/2));
-    addEnemyTank1(Vec2(winsize.width/8*6,winsize.height/2));
-    addEnemyTank1(Vec2(winsize.width/8*7,winsize.height/26));
+    addEnemyTank2(Vec2(winsize.width/8,winsize.height));
+    addEnemyTank2(Vec2(winsize.width/8*2,winsize.height));
+    addEnemyTank1(Vec2(winsize.width/8*6,winsize.height));
+    addEnemyTank1(Vec2(winsize.width/8*7,winsize.height));
 }
 
 void GameScene::addEnemyTankGroup3()
 {
-    
+    addBarrier(Vec2(winsize.width/8*3,winsize.height));
+    addBarrier(Vec2(winsize.width/8*4,winsize.height));
+    addBarrier(Vec2(winsize.width/8*5,winsize.height));
+    addTower(Vec2(winsize.width/8*4,winsize.height+100));
 }
 
 void GameScene::addEnemyTankGroup4()
 {
+    addBarrier(Vec2(winsize.width/8*1,winsize.height));
+    addBarrier(Vec2(winsize.width/8*2,winsize.height));
+    addBarrier(Vec2(winsize.width/8*3,winsize.height));
+    addTower(Vec2(winsize.width/16*3,winsize.height+100));
+    addEnemyTank2(Vec2(winsize.width/16*5,winsize.height+100));
     
+    addBarrier(Vec2(winsize.width/8*5,winsize.height));
+    addBarrier(Vec2(winsize.width/8*6,winsize.height));
+    addBarrier(Vec2(winsize.width/8*7,winsize.height));
+    addTower(Vec2(winsize.width/16*11,winsize.height+100));
+    addEnemyTank2(Vec2(winsize.width/16*13,winsize.height+100));
 }
 
 void GameScene::addEnemyTankGroup5()
 {
-    
+    addBarrier(Vec2(winsize.width/8*3,winsize.height));
+    addBarrier(Vec2(winsize.width/8*5,winsize.height));
+    addEnemyTank1(Vec2(winsize.width/8*4,winsize.height));
+    addTower(Vec2(winsize.width/16*7,winsize.height+100));
+    addTower(Vec2(winsize.width/16*9,winsize.height+100));
 }
 
 void GameScene::addEnemyTankGroup6()
@@ -347,4 +365,34 @@ void GameScene::addEnemyTank3(Vec2 pos)
 void GameScene::addEnemyTank4(Vec2 pos)
 {
     addEnemyTank(pos,"enemybody4.png","enemygun4.png",4,2);
+}
+
+void GameScene::addBarrier(Vec2 pos)
+{
+    Barrier* barrier = Barrier::create("barrier.png", 6, 2);
+    barrier->setPosition(pos.x,pos.y+60);
+    float time = (pos.y+60)/winsize.height*20;
+    auto moveAct = MoveTo::create(time, Vec2(pos.x,ENEMY_MIN_POS));
+    auto funcAct = CallFuncN::create(CC_CALLBACK_1(GameScene::removeBarrier, this));
+    barrier->runAction(Sequence::create(moveAct,funcAct,NULL));
+    barrierVec.push_back(barrier);
+    addChild(barrier,Game_Layer_Tank);
+}
+
+void GameScene::addTower(Vec2 pos)
+{
+    Barrier* barrier = Barrier::create("tower.png", 5, 2);
+    barrier->setPosition(pos.x,pos.y+60);
+    float time = (pos.y+60)/winsize.height*20;
+    auto moveAct = MoveTo::create(time, Vec2(pos.x,ENEMY_MIN_POS));
+    auto funcAct = CallFuncN::create(CC_CALLBACK_1(GameScene::removeBarrier, this));
+    barrier->runAction(Sequence::create(moveAct,funcAct, NULL));
+    barrierVec.push_back(barrier);
+    addChild(barrier,Game_Layer_Tank);
+}
+
+void GameScene::removeBarrier(cocos2d::Node *barrier)
+{
+    barrierVec.erase(std::find(barrierVec.begin(), barrierVec.end(), barrier));
+    removeChild(barrier);
 }

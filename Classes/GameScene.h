@@ -16,6 +16,7 @@ class Score;
 class TankHero;
 class ControlLayer;
 class EnemyTank;
+class Barrier;
 
 using namespace cocos2d;
 
@@ -80,14 +81,13 @@ public:
     void addEnemyTank2(Vec2 pos);
     void addEnemyTank3(Vec2 pos);
     void addEnemyTank4(Vec2 pos);
-    void addEnemyTank5(Vec2 pos);
-    void addEnemyTank6(Vec2 pos);
-    void addEnemyTank7(Vec2 pos);
-    void addEnemyTank8(Vec2 pos);
-    void addEnemyTank9(Vec2 pos);
-    void addEnemyTank10(Vec2 pos);
+
+    void addBarrier(Vec2 pos);
+    void addTower(Vec2 pos);
+    void removeBarrier(Node* barrier);
 
 private:
     std::vector<EnemyTank*> enemyTankVec;
+    std::vector<Barrier*> barrierVec;
 };
 #endif /* defined(__Tank__GameScene__) */
