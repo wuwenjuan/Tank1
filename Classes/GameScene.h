@@ -80,6 +80,12 @@ public:
     void addEnemyTank2(Vec2 pos);
     void addEnemyTank3(Vec2 pos);
     void addEnemyTank4(Vec2 pos);
+    void addEnemyTank5(Vec2 pos);
+    void addEnemyTank6(Vec2 pos);
+    void addEnemyTank7(Vec2 pos);
+    void addEnemyTank8(Vec2 pos);
+    void addEnemyTank9(Vec2 pos);
+    void addEnemyTank10(Vec2 pos);
 
 private:
     std::vector<EnemyTank*> enemyTankVec;
