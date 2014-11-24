@@ -51,9 +51,7 @@ private:
     Score* score;
 
     SpriteBatchNode* tankBazooka;
-    
-    SpriteBatchNode* enemyBullet;
-    SpriteBatchNode* enemyBazooka;
+
     ControlLayer* controlLayer;
     
     char pBName[3][32];
@@ -65,6 +63,12 @@ public:
     void addEnemyTank(float dt);
     void addEnemyTank(Vec2 pos,const char* body,const char* gun,int index,int blood);
     void removeEnemyTank(Node* etank);
+    void updateEnemyTank(float dt);
+    void enemyTankShoot(float dt);
+    void addEnemyTankBullet(Node *node);
+    void addBarrierBullet(Node* node);
+    void removeEnemyTankBullet(Node *node);
+    void removeEnemyTankBazooka(Node *node);
     
     void addEnemyTankGroup1();
     void addEnemyTankGroup2();
@@ -87,7 +91,11 @@ public:
     void removeBarrier(Node* barrier);
 
 private:
+    std::string enemyName[5];
+    
     std::vector<EnemyTank*> enemyTankVec;
     std::vector<Barrier*> barrierVec;
+    SpriteBatchNode* enemyBullet;
+    SpriteBatchNode* enemyBazooka;
 };
 #endif /* defined(__Tank__GameScene__) */

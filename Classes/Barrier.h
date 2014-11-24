@@ -18,6 +18,7 @@ class Barrier : public Sprite
 public:
     static Barrier* create(const char* pic,int index,int blood);
     bool isCollision(Sprite* target);
+    int getBarrierIndex()const{return index;}
 private:
     int index;
     int blood;

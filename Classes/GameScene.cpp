@@ -14,6 +14,7 @@
 #include "GameDefine.h"
 #include "EnemyTank.h"
 #include "Barrier.h"
+#include "EnemyTankGun.h"
 
 Scene* GameScene::createScene()
 {
@@ -42,9 +43,9 @@ bool GameScene::init()
     
     //敌方子弹和炮弹
     enemyBullet = SpriteBatchNode::create("enemyBullet.png");
-    addChild(enemyBullet);
+    addChild(enemyBullet,Game_Layer_Bullet);
     enemyBazooka = SpriteBatchNode::create("enemyBazooka.png");
-    addChild(enemyBazooka);
+    addChild(enemyBazooka,Game_Layer_Bullet);
     
     hp = TankHp::create();
     hp->setAnchorPoint(Vec2(0,0));
@@ -68,9 +69,17 @@ bool GameScene::init()
     addOneGroupTree();
     initGunAnimation();
     
+    enemyName[0] = "enemyBullet.png";
+    enemyName[1] = "enemyBullet.png";
+    enemyName[2] = "enemyBazooka.png";
+    enemyName[3] = "enemyBazooka.png";
+    enemyName[4] = "enemyBazooka.png";
+    
     schedule(schedule_selector(GameScene::updateBackGround), 0.04);
     schedule(schedule_selector(GameScene::addTrees),3);
     schedule(schedule_selector(GameScene::addEnemyTank), 2);
+    schedule(schedule_selector(GameScene::updateEnemyTank), 0.05);
+    schedule(schedule_selector(GameScene::enemyTankShoot), 1);
 
     return true;
 }
@@ -395,4 +404,111 @@ void GameScene::removeBarrier(cocos2d::Node *barrier)
 {
     barrierVec.erase(std::find(barrierVec.begin(), barrierVec.end(), barrier));
     removeChild(barrier);
+}
+
+void GameScene::updateEnemyTank(float dt)
+{
+    Vec2 heroPos = hero->getPosition();
+    for (auto it=enemyTankVec.begin(); it!=enemyTankVec.end(); ++it) {
+        Vec2 enemyPos = (*it)->getPosition();
+        Vec2 tempdis = Vec2(heroPos.x-enemyPos.x,heroPos.y-enemyPos.y);
+        float angle = 0.0;
+        if (tempdis.x > 0) {
+            angle = 90-atan(tempdis.y/tempdis.x)*180.0/pi;
+        }
+        else
+        {
+            angle = -atan(tempdis.y/tempdis.x)*180.0/pi-90;
+        }
+        (*it)->rotateGun(angle);
+    }
+}
+
+void GameScene::enemyTankShoot(float dt)
+{
+    for (auto it=enemyTankVec.begin(); it!=enemyTankVec.end(); ++it) {
+        EnemyTank* enemyTank = (EnemyTank*)(*it);
+        int index = rand()%3;
+        auto waitAct = DelayTime::create(index*0.005);
+        Animate* aniAct = Animate::create(tankGunAnimation[enemyTank->getEnemyTankIndex()]);
+        auto shootAct = CallFuncN::create(CC_CALLBACK_1(GameScene::addEnemyTankBullet, this));
+        enemyTank->enemyTankGun->runAction(Sequence::create(waitAct,aniAct,shootAct, NULL));
+    }
+    
+    for (auto it=barrierVec.begin(); it!=barrierVec.end(); ++it) {
+        Barrier* barrier = (Barrier*)(*it);
+        if (barrier->getBarrierIndex() == 5) {
+            addBarrierBullet(barrier);
+        }
+    }
+}
+
+void GameScene::addEnemyTankBullet(Node* node)
+{
+    auto* enemyTankGun = (EnemyTankGun*)node;
+    auto etankbullet = Sprite::create(enemyName[enemyTankGun->getEnemyTankIndex()-1].c_str());
+    switch (enemyTankGun->getEnemyTankIndex()) {
+        case 1:
+        case 2:
+            enemyBullet->addChild(etankbullet);
+            break;
+        case 3:
+        case 4:
+            enemyBazooka->addChild(etankbullet);
+            break;
+        default:
+            break;
+    }
+    
+    float enemyTankGunRotation = enemyTankGun->getRotation();
+    etankbullet->setRotation(enemyTankGunRotation);
+    enemyTankGunRotation = enemyTankGunRotation*pi/180.0f;
+    
+    Vec2 enemyTankGunPos = enemyTankGun->getPosition();
+    enemyTankGunPos = enemyTankGun->convertToWorldSpaceAR(enemyTankGunPos);
+    etankbullet->setPosition(enemyTankGunPos.x+40*sin(enemyTankGunRotation),enemyTankGunPos.y+40*cos(enemyTankGunRotation));
+    
+    auto moveAct = MoveTo::create(8, Vec2(enemyTankGunPos.x+1600*sin(enemyTankGunRotation),enemyTankGunPos.y+1200*cos(enemyTankGunRotation)));
+
+    if (enemyTankGun->getEnemyTankIndex() < 3) {
+        auto funcAct = CallFuncN::create(CC_CALLBACK_1(GameScene::removeEnemyTankBullet, this));
+        etankbullet->runAction(Sequence::create(moveAct,funcAct, NULL));
+    }
+    else
+    {
+        auto funcAct = CallFuncN::create(CC_CALLBACK_1(GameScene::removeEnemyTankBazooka, this));
+        etankbullet->runAction(Sequence::create(moveAct,funcAct, NULL));
+    }
+}
+
+void GameScene::addBarrierBullet(Node* node)
+{
+    Barrier* barrier = (Barrier*)node;
+    auto barrierBullet = Sprite::create(enemyName[barrier->getBarrierIndex()-1].c_str());
+    enemyBazooka->addChild(barrierBullet);
+    barrierBullet->setPosition(barrier->getPosition());
+    
+    float angle = 0.0;
+    auto posDiff = Vec2(hero->tankBody->getPosition().x-barrier->getPosition().x,hero->tankBody->getPosition().y-barrier->getPosition().y);
+    if (posDiff.x > 0) {
+        angle = 90-atan(posDiff.y/posDiff.x)*180/pi;
+    }
+    else
+    {
+        angle = -atan(posDiff.y/posDiff.x)*180/pi-90;
+    }
+    auto moveAct = MoveTo::create(5, Vec2(barrier->getPosition().x+1024*posDiff.x,barrier->getPosition().y+800*posDiff.y));
+    barrierBullet->setRotation(angle);
+    auto funcAct = CallFuncN::create(CC_CALLBACK_1(GameScene::removeEnemyTankBazooka, this));
+    barrierBullet->runAction(Sequence::create(moveAct,funcAct, NULL));
+}
+
+void GameScene::removeEnemyTankBullet(Node *node)
+{
+    enemyBullet->removeChild(node, true);
+}
+
+void GameScene::removeEnemyTankBazooka(Node *node)
+{
+    enemyBazooka->removeChild(node, true);
 }

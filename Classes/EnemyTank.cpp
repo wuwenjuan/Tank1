@@ -8,6 +8,7 @@
 
 #include "EnemyTank.h"
 #include "GameDefine.h"
+#include "EnemyTankGun.h"
 
 bool EnemyTank::initWithValue(const char* body,const char* gun,int index,int blood)
 {
@@ -17,7 +18,7 @@ bool EnemyTank::initWithValue(const char* body,const char* gun,int index,int blo
     enemyTankBody = Sprite::create(body);
     addChild(enemyTankBody);
     
-    enemyTankGun = Sprite::create(gun);
+    enemyTankGun = EnemyTankGun::create(gun, index);
     enemyTankGun->setAnchorPoint(Vec2(0.5,0.27));
     enemyTankGun->setRotation(180);
     addChild(enemyTankGun);
@@ -39,4 +40,20 @@ bool EnemyTank::isCollision(Sprite* tankBullet)
         return true;
     else
         return false;
+}
+
+void EnemyTank::rotateGun(float angle)
+{
+    auto rotateAct = RotateTo::create(0.3, angle);
+    enemyTankGun->runAction(rotateAct);    
+}
+
+float EnemyTank::getEnemyTankGunRotation()
+{
+    return enemyTankGun->getRotation();
+}
+
+Vec2 EnemyTank::getEnemyTankGunPos()
+{
+    return enemyTankGun->getPosition();
 }
